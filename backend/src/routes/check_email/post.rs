@@ -66,6 +66,10 @@ async fn handler(body: EndpointRequest) -> Result<impl warp::Reply, warp::Reject
 /// Create the `POST /check_email` endpoint.
 pub fn post_check_email(
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_headers(vec!["User-Agent", "Sec-Fetch-Mode", "Referer", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "content-type"])
+        .allow_methods(vec!["POST", "GET"]);
 	warp::path!("v0" / "check_email")
 		.and(warp::post())
 		.and(check_header())
@@ -76,4 +80,5 @@ pub fn post_check_email(
 		.and_then(handler)
 		// View access logs by setting `RUST_LOG=reacher`.
 		.with(warp::log(LOG_TARGET))
+        .with(cors)
 }

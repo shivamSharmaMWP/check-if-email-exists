@@ -131,12 +131,19 @@ async fn create_bulk_request(
 	}))
 }
 
+
+
 /// Create the `POST /bulk` endpoint.
 /// The endpoint accepts list of email address and creates
 /// a new job to check them.
 pub fn create_bulk_job(
 	o: Option<Pool<Postgres>>,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_headers(vec!["User-Agent", "Sec-Fetch-Mode", "Referer", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "content-type"])
+        .allow_methods(vec!["POST", "GET"]);
+    
 	warp::path!("v0" / "bulk")
 		.and(warp::post())
 		.and(check_header())
@@ -144,9 +151,10 @@ pub fn create_bulk_job(
 		// When accepting a body, we want a JSON body (and to reject huge
 		// payloads)...
 		// TODO: Configure max size limit for a bulk job
-		.and(warp::body::content_length_limit(1024 * 16))
+		.and(warp::body::content_length_limit(1024 * 1024 * 200))
 		.and(warp::body::json())
 		.and_then(create_bulk_request)
 		// View access logs by setting `RUST_LOG=reacher`.
 		.with(warp::log(LOG_TARGET))
+        .with(cors)
 }
