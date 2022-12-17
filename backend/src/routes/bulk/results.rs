@@ -448,6 +448,10 @@ async fn job_result_csv(
 pub fn get_bulk_job_result(
 	o: Option<Pool<Postgres>>,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_headers(vec!["User-Agent", "Sec-Fetch-Mode", "Referer", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "content-type"])
+        .allow_methods(vec!["POST", "GET"]);
 	warp::path!("v0" / "bulk" / i32 / "results")
 		.and(warp::get())
 		.and(with_db(o))
@@ -455,4 +459,5 @@ pub fn get_bulk_job_result(
 		.and_then(job_result)
 		// View access logs by setting `RUST_LOG=reacher`.
 		.with(warp::log(LOG_TARGET))
+        .with(cors)
 }

@@ -162,10 +162,15 @@ async fn job_status(
 pub fn get_bulk_job_status(
 	o: Option<Pool<Postgres>>,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_headers(vec!["User-Agent", "Sec-Fetch-Mode", "Referer", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "content-type"])
+        .allow_methods(vec!["POST", "GET"]);
 	warp::path!("v0" / "bulk" / i32)
 		.and(warp::get())
 		.and(with_db(o))
 		.and_then(job_status)
 		// View access logs by setting `RUST_LOG=reacher`.
 		.with(warp::log(LOG_TARGET))
+        .with(cors)
 }
